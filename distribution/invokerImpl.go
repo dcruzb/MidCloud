@@ -1,8 +1,8 @@
 package dist
 
 import (
-	"MidCloud/infrastruture/server"
-	"MidCloud/lib"
+	"github.com/dcbCIn/MidCloud/infrastruture/server"
+	"github.com/dcbCIn/MidCloud/lib"
 	"reflect"
 )
 

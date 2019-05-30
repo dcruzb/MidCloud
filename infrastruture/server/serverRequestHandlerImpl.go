@@ -1,7 +1,7 @@
 package server
 
 import (
-	"MidCloud/lib"
+	"github.com/dcbCIn/MidCloud/lib"
 	"net"
 	"strconv"
 )

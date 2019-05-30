@@ -1,7 +1,7 @@
 package common
 
 import (
-	"MidCloud/lib"
+	"github.com/dcbCIn/MidCloud/lib"
 )
 
 type ClientProxy struct {

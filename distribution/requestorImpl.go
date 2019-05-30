@@ -1,8 +1,8 @@
 package dist
 
 import (
-	"MidCloud/infrastruture/client"
-	"MidCloud/lib"
+	"github.com/dcbCIn/MidCloud/infrastruture/client"
+	"github.com/dcbCIn/MidCloud/lib"
 )
 
 // Implements requestor

@@ -1,8 +1,8 @@
 package dist
 
 import (
-	"MidCloud/lib"
-	"MidCloud/services/common"
+	"github.com/dcbCIn/MidCloud/lib"
+	"github.com/dcbCIn/MidCloud/services/common"
 	"github.com/mitchellh/mapstructure"
 )
 
