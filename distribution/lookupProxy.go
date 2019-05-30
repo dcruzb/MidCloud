@@ -1,14 +1,14 @@
 package dist
 
 import (
+	"MidCloud/lib"
+	"MidCloud/services/common"
 	"github.com/mitchellh/mapstructure"
-	"middleware/lib"
-	"middleware/lib/services/common"
 )
 
 type LookupProxy struct {
-	Host      string
-	Port      int
+	host      string
+	port      int
 	requestor Requestor
 }
 
@@ -17,7 +17,7 @@ func NewLookupProxy(host string, port int) *LookupProxy {
 }
 
 func (lp LookupProxy) Bind(sn string, cp common.ClientProxy) (err error) {
-	inv := *NewInvocation(0, lp.Host, lp.Port, lib.FunctionName(), []interface{}{sn, cp})
+	inv := *NewInvocation(0, lp.host, lp.port, lib.FunctionName(), []interface{}{sn, cp})
 	_, err = lp.requestor.Invoke(inv)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (lp LookupProxy) Bind(sn string, cp common.ClientProxy) (err error) {
 }
 
 func (lp LookupProxy) Lookup(serviceName string) (cp common.ClientProxy, err error) {
-	inv := *NewInvocation(0, lp.Host, lp.Port, lib.FunctionName(), []interface{}{serviceName})
+	inv := *NewInvocation(0, lp.host, lp.port, lib.FunctionName(), []interface{}{serviceName})
 	termination, err := lp.requestor.Invoke(inv)
 	if err != nil {
 		return cp, err

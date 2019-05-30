@@ -1,7 +1,7 @@
 package common
 
 import (
-	"middleware/lib"
+	"MidCloud/lib"
 )
 
 type ClientProxy struct {

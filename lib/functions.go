@@ -30,25 +30,25 @@ func FunctionName() string {
 
 	return name[len(name)-1]
 }
-func Println(program string, messageLevel DebugLevel, message ...interface{}) {
+func Println(messageLevel DebugLevel, message ...interface{}) {
 	if len(SHOW_MESSAGES) > 0 {
 		if inArrayDL(messageLevel, SHOW_MESSAGES) {
+			_, file, line, ok := runtime.Caller(2)
+			if !ok {
+				file = "???"
+				line = 0
+			}
+
 			switch messageLevel {
 			case INFO:
 				var logs []interface{}
-				logs = append(logs, program, "- INFO -")
+				logs = append(logs, file, "- INFO -")
 				logs = append(logs, message...)
 				log.Println(logs...)
 			case MESSAGE:
 				fmt.Println(message...)
 			case ERROR:
-				_, file, line, ok := runtime.Caller(2)
-				if !ok {
-					file = "???"
-					line = 0
-				}
-
-				log.Println(program, "\n          ***** ERROR *****",
+				log.Println(file, "\n          ***** ERROR *****",
 					"\n          File:", file,
 					"\n          Line:", strconv.Itoa(line),
 					"\n          Message:\n               ", message)
@@ -57,21 +57,21 @@ func Println(program string, messageLevel DebugLevel, message ...interface{}) {
 	}
 }
 
-func PrintlnInfo(program string, message ...interface{}) {
-	Println(program, INFO, message...)
+func PrintlnInfo(message ...interface{}) {
+	Println(INFO, message...)
 }
 
-func PrintlnMessage(program string, message ...interface{}) {
-	Println(program, MESSAGE, message...)
+func PrintlnMessage(message ...interface{}) {
+	Println(MESSAGE, message...)
 }
 
-func PrintlnError(program string, message ...interface{}) {
-	Println(program, ERROR, message...)
+func PrintlnError(message ...interface{}) {
+	Println(ERROR, message...)
 }
 
-func FailOnError(program string, err error, msg string) {
+func FailOnError(err error, msg string) {
 	if err != nil {
-		Println(program, ERROR, msg, ":", err)
+		Println(ERROR, msg, ":", err)
 		os.Exit(1)
 	}
 }

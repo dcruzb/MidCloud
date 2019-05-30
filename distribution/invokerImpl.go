@@ -1,14 +1,17 @@
 package dist
 
 import (
-	"github.com/mitchellh/mapstructure"
-	"middleware/app/server/remoteObjects"
-	"middleware/lib"
-	"middleware/lib/infra/server"
-	"middleware/lib/services/common"
+	"MidCloud/infrastruture/server"
+	"MidCloud/lib"
+	"reflect"
 )
 
 type InvokerImpl struct {
+	remoteObjects map[int]interface{}
+}
+
+func (inv InvokerImpl) Register(objectId int, remoteObject interface{}) {
+	inv.remoteObjects[objectId] = remoteObject
 }
 
 func (inv InvokerImpl) Invoke(port int) (err error) {
@@ -18,9 +21,6 @@ func (inv InvokerImpl) Invoke(port int) (err error) {
 	}
 	defer srh.StopServer()
 	lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - conexão aberta")
-
-	var lookup = common.Lookup{}
-	var jankenpo = remoteObjects.Jankenpo{}
 
 	for {
 		err = srh.Start()
@@ -49,31 +49,28 @@ func (inv InvokerImpl) Invoke(port int) (err error) {
 
 			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Mensagem unmarshalled")
 
-			switch msgReceived.Body.RequestHeader.Operation { // Todo add the objectId to demultiplex
-			case "Play":
-				player1Move := msgReceived.Body.RequestBody.Parameters[0].(string)
-				player2Move := msgReceived.Body.RequestBody.Parameters[1].(string)
-				msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 1}
-				msgReceived.Body.ReplyBody, _ = jankenpo.Play(player1Move, player2Move)
-			case "Bind":
-				serviceName := msgReceived.Body.RequestBody.Parameters[0].(string)
-				var clientProxy common.ClientProxy
-				err := mapstructure.Decode(msgReceived.Body.RequestBody.Parameters[1], &clientProxy)
-				if err != nil {
-					lib.PrintlnError("InvokerImpl", err)
-				}
-				//clientProxyMap := msgReceived.Body.RequestBody.Parameters[1].(map[string]interface{})
-				//clientProxy := common.ClientProxy{clientProxyMap["Ip"].(string), int(clientProxyMap["Port"].(float64)), int(clientProxyMap["ObjectId"].(float64))}
-				msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 1}
-				msgReceived.Body.ReplyBody = lookup.Bind(serviceName, clientProxy)
-			case "Lookup":
-				serviceName := msgReceived.Body.RequestBody.Parameters[0].(string)
-				msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 1}
-				msgReceived.Body.ReplyBody, _ = lookup.Lookup(serviceName)
-			default:
-				msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 0}
-				msgReceived.Body.ReplyBody = nil
+			remoteObject := inv.remoteObjects[msgReceived.Body.RequestHeader.ObjectKey]
+
+			reflectedObject := reflect.ValueOf(remoteObject)
+			function := reflectedObject.MethodByName(msgReceived.Body.RequestHeader.Operation)
+			functionType := function.Type()
+			if functionType.NumIn() != len(msgReceived.Body.RequestBody.Parameters) {
+				lib.PrintlnError("Quantidade de parâmetros inválida para objeto remoto (", msgReceived.Body.RequestHeader.ObjectKey, ")/ operação (", msgReceived.Body.RequestHeader.Operation, ")")
 			}
+			var args []reflect.Value
+			for i, parameter := range msgReceived.Body.RequestBody.Parameters {
+				args[i] = parameter.(reflect.Value) // Todo Adjust value type
+			}
+
+			msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 1}
+			msgReceived.Body.ReplyBody = nil
+			var returned []reflect.Value
+			returned = function.Call(args)
+
+			//for i := 0; i <= functionType.NumOut(); i++ {
+
+			msgReceived.Body.ReplyBody = returned
+			//}
 
 			var bytes []byte
 			bytes, err = Marshall(msgReceived)
