@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var SHOW_MESSAGES = []DebugLevel{ERROR} //, INFO, MESSAGE}
+var SHOW_MESSAGES = []DebugLevel{ERROR, INFO, MESSAGE}
 
 type DebugLevel int
 

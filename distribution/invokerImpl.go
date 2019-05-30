@@ -11,6 +11,9 @@ type InvokerImpl struct {
 }
 
 func (inv InvokerImpl) Register(objectId int, remoteObject interface{}) {
+	if inv.remoteObjects == nil {
+		inv.remoteObjects = make(map[int]interface{})
+	}
 	inv.remoteObjects[objectId] = remoteObject
 }
 
