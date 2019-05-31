@@ -1,6 +1,7 @@
 package dist
 
 import (
+	"errors"
 	"github.com/dcbCIn/MidCloud/infrastruture/client"
 	"github.com/dcbCIn/MidCloud/lib"
 )
@@ -43,7 +44,10 @@ func (r *RequestorImpl) Invoke(inv Invocation) (t Termination, err error) {
 		return Termination{}, err
 	}
 
-	// Todo check if replyStatus of the message is valid
+	if msgReturned.Body.ReplyHeader.ReplyStatus != 1 {
+		// Todo identify errors by ReplyStatus codes
+		return Termination{}, errors.New("Server error while requesting remote operation. ")
+	}
 
 	lib.PrintlnInfo("RequestorImpl", "RequestorImpl.Invoke - Reply recebido e unmarshalled")
 	t = Termination{msgReturned.Body.ReplyBody}

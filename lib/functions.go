@@ -30,6 +30,7 @@ func FunctionName() string {
 
 	return name[len(name)-1]
 }
+
 func Println(messageLevel DebugLevel, message ...interface{}) {
 	if len(SHOW_MESSAGES) > 0 {
 		if inArrayDL(messageLevel, SHOW_MESSAGES) {
