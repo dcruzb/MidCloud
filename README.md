@@ -1,4 +1,4 @@
-# MidCloud [![Godoc](https://godoc.org/github.com/dcbCIn/MidCloud?status.svg)](https://godoc.org/github.com/dcbCIn/MidCloud)
+# MidCloud [![Godoc](https://godoc.org/github.com/dcbCIn/MidCloud?status.svg)](https://godoc.org/github.com/dcbCIn/MidCloud) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dcbCIn/MidCloud/blob/master/LICENSE)
 Adaptive middleware for cloud services, with transparent choice of best cloud.
 The basic conceptions are that the message will be sent to the server that has the lower cost to do the task and is available.
 
@@ -8,6 +8,15 @@ Standard `go get`:
 
 ```
 $ go get github.com/dcbCIn/MidCloud
+```
+
+In your source code:
+
+```go
+import (
+	"github.com/dcbCIn/MidCloud/distribution"
+	"github.com/dcbCIn/MidCloud/services/common"
+)
 ```
 
 ## Usage & Example
@@ -24,3 +33,7 @@ applications, and to eradicate any downtime possible.
 
 Can be from a multi-cloud storage (see [CloudStorage](https://github.com/dcbCIn/CloudStorage) project), multi-cloud faas, 
 or any other you want to create).
+
+## License
+
+The MIT License (MIT)
