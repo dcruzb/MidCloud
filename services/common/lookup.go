@@ -23,7 +23,7 @@ type NamingRecord struct {
 type ILookup interface {
 	Bind(sn string, cp ClientProxy) (err error)
 	Lookup(serviceName string) (cp ClientProxy, err error)
-	List() []NamingRecord
+	List() (services []NamingRecord, err error)
 }
 
 type Lookup struct {
@@ -55,7 +55,7 @@ func (l Lookup) Lookup(serviceName string) (cp ClientProxy, err error) {
 	return ClientProxy{}, nil
 }
 
-func (l Lookup) List() []NamingRecord {
+func (l Lookup) List() (services []NamingRecord, err error) {
 	lib.PrintlnInfo("Lookup", "Service list (", len(l.services), ")")
-	return l.services
+	return l.services, nil
 }

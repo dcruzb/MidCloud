@@ -40,6 +40,21 @@ func (lp LookupProxy) Lookup(serviceName string) (cp common.ClientProxy, err err
 	return cp, nil
 }
 
+func (lp LookupProxy) List() (services []common.NamingRecord, err error) {
+	inv := *NewInvocation(0, lp.host, lp.port, lib.FunctionName(), []interface{}{})
+	termination, err := lp.requestor.Invoke(inv)
+	if err != nil {
+		return nil, err
+	}
+
+	err = mapstructure.Decode(termination.Result, &services)
+	if err != nil {
+		return services, err
+	}
+
+	return services, nil
+}
+
 func (lp LookupProxy) Close() error {
 	return lp.requestor.Close()
 }
