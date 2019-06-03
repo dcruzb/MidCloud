@@ -2,11 +2,8 @@ package common
 
 import (
 	"github.com/dcbCIn/MidCloud/lib"
-	"strings"
-
-	//	"github.com/dcbCIn/MidCloud/lib"
-	//	"strings"
 	"sort"
+	"strings"
 	"time"
 )
 

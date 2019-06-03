@@ -7,7 +7,7 @@ The basic conceptions are that the message will be sent to the server that has t
 Standard `go get`:
 
 ```
-$ go get github.com/dcbCIn/MidCloud
+$ go get -u github.com/dcbCIn/MidCloud/...
 ```
 
 In your source code:
@@ -28,12 +28,12 @@ The [CloudStorage](https://github.com/dcbCIn/CloudStorage) project has examples 
 
 ## But Why?!
 
-There exists a long list of middlewares, but MidCloud comes with the proposal of reduce the costs of multi-cloud 
+There exists a long list of adaptive middlewares, but MidCloud comes with the proposal of reduce the costs of multi-cloud 
 applications, and to eradicate any downtime possible. 
 
 Can be from a multi-cloud storage (see [CloudStorage](https://github.com/dcbCIn/CloudStorage) project), multi-cloud faas, 
-or any other you want to create).
+or any other service you want to create).
 
 ## License
 
-The MIT License (MIT)
+[The MIT License (MIT)](https://github.com/dcbCIn/MidCloud/blob/master/LICENSE)
