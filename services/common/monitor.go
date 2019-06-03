@@ -67,6 +67,7 @@ func (mon *Monitor) Start( /*nameServerIp string, nameServerPort int,*/ lookupPr
 		mon.RefreshRank()
 		time.Sleep(1 * time.Minute)
 	}
+	// Todo monitor não está fechando e reabrindo a conexão para o lookup, pois é acessado diversas vezes depois (a cada intervalo de tempo pré-definido). Isso ocasiona a quebra do sistema de monitoramento caso o servidor de nomes seja reiniciado.
 }
 
 // Get the list of cloud services based on name server list of binded servers
