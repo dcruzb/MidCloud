@@ -3,7 +3,6 @@ package dist
 import (
 	"github.com/dcbCIn/MidCloud/infrastruture/server"
 	"github.com/dcbCIn/MidCloud/lib"
-	"github.com/mitchellh/mapstructure"
 	"reflect"
 )
 
@@ -55,9 +54,7 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 
 			remoteObject := inv.remoteObjects[msgReceived.Body.RequestHeader.ObjectKey]
 
-			//reflectedObject := reflect.New(reflect.TypeOf(remoteObject)) //WORKING
 			reflectedObject := reflect.ValueOf(remoteObject)
-			//reflectedObject := remoteObject
 			function := reflectedObject.MethodByName(msgReceived.Body.RequestHeader.Operation)
 			functionType := function.Type()
 
@@ -75,7 +72,7 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 						reflectedArg := reflect.New(functionType.In(i))
 						inter := reflectedArg.Elem().Interface() //.(reflectedArg.Type())
 						//inter := common.ClientProxy{}
-						err = mapstructure.Decode(parameter, &inter)
+						err = lib.Decode(parameter.(map[string]interface{}), &inter) //mapstructure.Decode(parameter, &inter)
 						arg = reflect.ValueOf(inter)
 					default:
 						arg = reflect.ValueOf(parameter)
