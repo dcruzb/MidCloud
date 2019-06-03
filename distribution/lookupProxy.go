@@ -32,7 +32,7 @@ func (lp LookupProxy) Lookup(serviceName string) (cp common.ClientProxy, err err
 		return cp, err
 	}
 
-	err = mapstructure.Decode(termination.Result, &cp)
+	err = mapstructure.Decode(termination.Result.([]interface{})[0], &cp)
 	if err != nil {
 		return cp, err
 	}

@@ -1,10 +1,12 @@
 package common
 
 import (
-	dist "github.com/dcbCIn/MidCloud/distribution"
 	"github.com/dcbCIn/MidCloud/lib"
-	"sort"
 	"strings"
+
+	//	"github.com/dcbCIn/MidCloud/lib"
+	//	"strings"
+	"sort"
 	"time"
 )
 
@@ -45,9 +47,10 @@ func (s SortByPriceAndAvailability) Swap(i, j int) {
 }
 
 type Monitor struct {
-	cloudServices         []CloudService
-	nameServerIp          string
-	nameServerPort        int
+	cloudServices []CloudService
+	//nameServerIp          string
+	//nameServerPort        int
+	lookup                ILookup
 	cloudFunctionName     string
 	cloudFunctionsPattern string
 }
@@ -57,9 +60,10 @@ type Monitor struct {
 //
 //	monitor := common.Monitor{}
 //	go monitor.Start(shared.NAME_SERVER_IP, shared.NAME_SERVER_PORT, "cloudFunctions", "CloudFunctions")
-func (mon *Monitor) Start(nameServerIp string, nameServerPort int, cloudFunctionName string, cloudFunctionsPattern string) {
-	mon.nameServerIp = nameServerIp
-	mon.nameServerPort = nameServerPort
+func (mon *Monitor) Start( /*nameServerIp string, nameServerPort int,*/ lookupProxy ILookup, cloudFunctionName string, cloudFunctionsPattern string) {
+	//mon.nameServerIp = nameServerIp
+	//mon.nameServerPort = nameServerPort
+	mon.lookup = lookupProxy
 	mon.cloudFunctionName = cloudFunctionName
 	mon.cloudFunctionsPattern = cloudFunctionsPattern
 	for {
@@ -70,22 +74,22 @@ func (mon *Monitor) Start(nameServerIp string, nameServerPort int, cloudFunction
 
 // Get the list of cloud services based on name server list of binded servers
 func (mon Monitor) RefreshCloudServices() {
-	lp := dist.NewLookupProxy(mon.nameServerIp, mon.nameServerPort)
-	services, err := lp.List()
+	//lp := dist.NewLookupProxy(mon.nameServerIp, mon.nameServerPort)
+	services, err := mon.lookup.List()
 	if err != nil {
 		lib.PrintlnError("Error at lookup. Error:", err)
 	}
-	err = lp.Close()
-	if err != nil {
-		lib.PrintlnError("Error at closing lookup. Error:", err)
-	}
+	//err = mon.lookup.Close()
+	//if err != nil {
+	//	lib.PrintlnError("Error at closing lookup. Error:", err)
+	//}
 
 	for _, service := range services {
 		// If the service registred in NameServer is a CloudFunctions server
-		if strings.Contains(service.serviceName, mon.cloudFunctionsPattern) {
+		if strings.Contains(service.ServiceName, mon.cloudFunctionsPattern) {
 			found := false
 			for _, cloudService := range mon.cloudServices {
-				if cloudService.Aor.serviceName == service.serviceName {
+				if cloudService.Aor.ServiceName == service.ServiceName {
 					found = true
 				}
 			}
@@ -111,9 +115,9 @@ func (mon *Monitor) RefreshRank() {
 
 // Binds the best cost-benefit cloud server to de name server
 func (mon *Monitor) Bind() {
-	lp := dist.NewLookupProxy(mon.nameServerIp, mon.nameServerPort)
-	err := lp.Bind(mon.cloudFunctionName, mon.cloudServices[0].Aor.clientProxy)
+	//lp := dist.NewLookupProxy(mon.nameServerIp, mon.nameServerPort)
+	err := mon.lookup.Bind(mon.cloudFunctionName, mon.cloudServices[0].Aor.ClientProxy)
 	lib.FailOnError(err, "Error at lookup.")
-	err = lp.Close()
-	lib.FailOnError(err, "Error at closing lookup")
+	//err = mon.lookup.Close()
+	//lib.FailOnError(err, "Error at closing lookup")
 }

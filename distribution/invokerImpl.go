@@ -15,7 +15,7 @@ func (inv *InvokerImpl) Register(objectId int, remoteObject interface{}) {
 	if inv.remoteObjects == nil {
 		inv.remoteObjects = make(map[int]interface{})
 	}
-	inv.remoteObjects[objectId] = remoteObject
+	inv.remoteObjects[objectId] = remoteObject //reflect.New(reflect.TypeOf(remoteObject)) //remoteObject
 }
 
 func (inv *InvokerImpl) Invoke(port int) (err error) {
@@ -55,7 +55,9 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 
 			remoteObject := inv.remoteObjects[msgReceived.Body.RequestHeader.ObjectKey]
 
-			reflectedObject := reflect.New(reflect.TypeOf(remoteObject))
+			//reflectedObject := reflect.New(reflect.TypeOf(remoteObject)) //WORKING
+			reflectedObject := reflect.ValueOf(remoteObject)
+			//reflectedObject := remoteObject
 			function := reflectedObject.MethodByName(msgReceived.Body.RequestHeader.Operation)
 			functionType := function.Type()
 
@@ -71,8 +73,9 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 					switch reflect.TypeOf(parameter).Kind() {
 					case reflect.Map:
 						reflectedArg := reflect.New(functionType.In(i))
-						inter := reflectedArg.Elem().Interface()
-						err = mapstructure.Decode(parameter, inter)
+						inter := reflectedArg.Elem().Interface() //.(reflectedArg.Type())
+						//inter := common.ClientProxy{}
+						err = mapstructure.Decode(parameter, &inter)
 						arg = reflect.ValueOf(inter)
 					default:
 						arg = reflect.ValueOf(parameter)
@@ -83,8 +86,28 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 
 				msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 1}
 				msgReceived.Body.ReplyBody = nil
-				returned := function.Call(args)
+				reflectedReturn := function.Call(args)
 
+				returned := make([]interface{}, len(reflectedReturn))
+				for i := 0; i < functionType.NumOut(); i++ {
+
+					//reflectedArg := reflect.New(functionType.Out(i))
+					//returned[i] = reflectedArg.Elem().Interface()
+					returned[i] = reflectedReturn[i].Interface()
+
+					/*var arg reflect.Value
+					switch reflect.TypeOf(parameter).Kind() {
+					case reflect.Map:
+						reflectedArg := reflect.New(functionType.In(i))
+						inter := reflectedArg.Elem().Interface()
+						err = mapstructure.Decode(parameter, inter)
+						arg = reflect.ValueOf(inter)
+					default:
+						arg = reflect.ValueOf(parameter)
+					}
+
+					args[i] = arg*/
+				}
 				//for i := 0; i <= functionType.NumOut(); i++ {
 				msgReceived.Body.ReplyBody = returned
 				//}
