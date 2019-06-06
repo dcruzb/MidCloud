@@ -97,22 +97,26 @@ func inArrayDL(a DebugLevel, list []DebugLevel) bool {
 }
 
 // Decode expects that mapValue is actually the same Type as structValue
-func Decode(mapValue map[string]interface{}, structValue interface{}) (err error) {
-	reflectedStructTemp := reflect.ValueOf(structValue).Elem()
+func Decode(mapValue map[string]interface{}, structValue interface{}) (decoded interface{}, err error) {
+	//structValue = reflect.New( typeOfStruct.(reflect.Type))
+	reflectedStructTemp := structValue.(*reflect.Value) //reflect.ValueOf(structValue) //.Elem()
 	var reflectedStruct reflect.Value
 	if reflectedStructTemp.Kind() == reflect.Interface {
 		reflectedStruct = reflectedStructTemp.Elem()
-	} else {
-		reflectedStruct = reflectedStructTemp
-	}
+	} else if reflectedStructTemp.Kind() == reflect.Ptr {
+		reflectedStruct = reflectedStructTemp.Elem()
+	} // else {
+	//reflectedStruct = reflectedStructTemp
+	//}
 
 	for k, v := range mapValue {
 		fmt.Println("Decode -", "field name:", k, "value:", v)
+		fmt.Println("canAddr:", reflectedStruct.CanAddr())
 		field := reflectedStruct.FieldByName(k)
 
 		switch field.Kind() {
 		case reflect.Struct:
-			Decode(v.(map[string]interface{}), &field)
+			//Decode(v.(map[string]interface{}), &field)
 		case reflect.String:
 			field.SetString(v.(string))
 		case reflect.Int, reflect.Int32, reflect.Int64:
@@ -122,5 +126,23 @@ func Decode(mapValue map[string]interface{}, structValue interface{}) (err error
 			field.SetFloat(v.(float64))
 		}
 	}
-	return nil
+	//fmt.Println("Decode -", "structValue returned:", structValue)
+	//fmt.Println("Decode -", "structValue returned:", &structValue)
+	//fmt.Println("Decode -", "structValue returned:", structValue.(*reflect.Value))
+	//fmt.Println("Decode -", "structValue returned:", structValue.(*reflect.Value).Elem())
+	//
+	//retorno := &structValue
+	//fmt.Println("Decode -", "structValue returned:", retorno)
+	//fmt.Println("Decode -", "structValue returned:", reflect.ValueOf(retorno).Elem())
+	//fmt.Println("Decode -", "structValue returned:", reflect.ValueOf(retorno).Elem().Elem())
+	//fmt.Println("Decode -", "structValue returned:", &(structValue.(reflect.Value)))
+	return structValue, nil
+
+	// Todo adicionar verificação abaixo (se um parametro é passível de conversão para outro tipo)
+	//argType := argValue.Type()
+	//if argType.ConvertibleTo(inType) {
+	//	in[i] = argValue.Convert(inType)
+	//} else {
+	//	return reflect.ValueOf(nil), fmt.Errorf("Method %s. Param[%d] must be %s. Have %s", name, i, inType, argType)
+	//}
 }
