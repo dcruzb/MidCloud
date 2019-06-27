@@ -47,7 +47,7 @@ func (lp LookupProxy) List() (services []common.NamingRecord, err error) {
 		return nil, err
 	}
 
-	err = mapstructure.Decode(termination.Result, &services)
+	err = mapstructure.Decode(termination.Result.([]interface{})[0], &services) // TODO change Termination.Result -> add 2 attributes ( 1st - Returns, 2nd Error )
 	if err != nil {
 		return services, err
 	}
