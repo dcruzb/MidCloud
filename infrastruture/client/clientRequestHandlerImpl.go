@@ -1,7 +1,7 @@
 package client
 
 import (
-	"fmt"
+	"github.com/dcbCIn/MidCloud/lib"
 	"net"
 	"os"
 	"strconv"
@@ -19,7 +19,7 @@ func NewClientRequestHandlerImpl(host string, port int) *ClientRequestHandlerImp
 	connection, err := net.Dial("tcp", address)
 
 	if err != nil {
-		fmt.Println(err)
+		lib.PrintlnError("Error while creating ClientRequestHandler", err)
 		os.Exit(3)
 	}
 
@@ -30,6 +30,7 @@ func (crh *ClientRequestHandlerImpl) Receive() (msg []byte, err error) {
 	msg = make([]byte, 10240)
 	n, err := crh.connection.Read(msg)
 	if err != nil {
+
 		return nil, err
 	}
 

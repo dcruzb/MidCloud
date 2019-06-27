@@ -3,7 +3,6 @@ package dist
 import (
 	"errors"
 	"github.com/dcbCIn/MidCloud/infrastruture/client"
-	"github.com/dcbCIn/MidCloud/lib"
 )
 
 // Implements requestor
@@ -45,11 +44,11 @@ func (r *RequestorImpl) Invoke(inv Invocation) (t Termination, err error) {
 	}
 
 	if msgReturned.Body.ReplyHeader.ReplyStatus != 1 {
-		// Todo identify errors by ReplyStatus codes
+		// Todo identify errors by diferent ReplyStatus codes
 		return Termination{}, errors.New("Server error while requesting remote operation. ")
 	}
 
-	lib.PrintlnInfo("RequestorImpl", "RequestorImpl.Invoke - Reply recebido e unmarshalled")
+	//lib.PrintlnInfo("RequestorImpl", "RequestorImpl.Invoke - Reply recebido e unmarshalled")
 	t = Termination{msgReturned.Body.ReplyBody}
 
 	return t, err

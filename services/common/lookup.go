@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"github.com/dcbCIn/MidCloud/lib"
 )
 
@@ -62,9 +61,9 @@ func (l Lookup) Lookup(serviceName string) (cp ClientProxy, err error) {
 
 func (l Lookup) List() (services []NamingRecord, err error) {
 	lib.PrintlnInfo("Lookup", "Service list (", len(l.services), ")")
-	for _, nr := range l.services {
+	/*for _, nr := range l.services {
 		fmt.Println(nr, nr.ServiceName, nr.ClientProxy)
-	}
+	}*/
 	return l.services, nil
 }
 

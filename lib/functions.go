@@ -110,8 +110,8 @@ func Decode(mapValue map[string]interface{}, structValue interface{}) (decoded i
 	//}
 
 	for k, v := range mapValue {
-		fmt.Println("Decode -", "field name:", k, "value:", v)
-		fmt.Println("canAddr:", reflectedStruct.CanAddr())
+		//fmt.Println("Decode -", "field name:", k, "value:", v)
+		//fmt.Println("canAddr:", reflectedStruct.CanAddr())
 		field := reflectedStruct.FieldByName(k)
 
 		switch field.Kind() {
@@ -120,7 +120,7 @@ func Decode(mapValue map[string]interface{}, structValue interface{}) (decoded i
 		case reflect.String:
 			field.SetString(v.(string))
 		case reflect.Int, reflect.Int32, reflect.Int64:
-			fmt.Println(int64(v.(float64)))
+			//fmt.Println(int64(v.(float64)))
 			field.SetInt(int64(v.(float64)))
 		case reflect.Float64:
 			field.SetFloat(v.(float64))
