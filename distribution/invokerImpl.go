@@ -38,9 +38,11 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 			msgToBeUnmarshalled, err := srh.Receive()
 			if err != nil {
 				if err.Error() == "EOF" {
+					lib.PrintlnInfo("Connection has been closed!")
 					break
 				} else {
-					return err
+					lib.PrintlnInfo("Connection has been gracefully closed!")
+					break
 				}
 			}
 			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Message received")
