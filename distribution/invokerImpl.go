@@ -19,7 +19,7 @@ func (inv *InvokerImpl) Register(objectId int, remoteObject interface{}) {
 }
 
 func (inv *InvokerImpl) Invoke(port int) (err error) {
-	srh, err := server.NewServerRequestHandlerImpl(port)
+	srh, err := server.NewServerRequestHandlerImpl(port, 5) // TODO alterar para pegar da configuração
 	if err != nil {
 		return err
 	}
