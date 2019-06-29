@@ -1,10 +1,9 @@
 package server
 
 import (
-	"bufio"
+	"errors"
 	"github.com/dcbCIn/MidCloud/lib"
 	"net"
-	"os"
 	"strconv"
 )
 
@@ -21,7 +20,7 @@ type ServerRequestHandlerImpl struct {
 
 func NewServerRequestHandlerImpl(port int, initialConnections int) (srh *ServerRequestHandlerImpl, err error) {
 	srh = &ServerRequestHandlerImpl{Port: port}
-	srh.clients = make([]Client, initialConnections)
+	srh.clients = make([]Client, initialConnections, initialConnections)
 
 	srh.listener, err = net.Listen("tcp", ":"+strconv.Itoa(srh.Port))
 	if err != nil {
@@ -34,7 +33,6 @@ func (s *ServerRequestHandlerImpl) Start() (err error) {
 	lib.PrintlnInfo("ServerRequestHandler", "Aceitando conexões...")
 
 	s.connection, err = s.listener.Accept()
-
 	if err != nil {
 		lib.PrintlnInfo("ServerRequestHandler", "Erro ao abrir conexão")
 		return err
@@ -83,17 +81,22 @@ func (s *ServerRequestHandlerImpl) Send(msg []byte) (err error) {
 
 //------------------------------
 
-func (srh *ServerRequestHandlerImpl) WaitForConnection(cliIdx int) (cl *Client) { // TODO if cliIdx >= inicitalConnections => need to append to the slice
+func (srh *ServerRequestHandlerImpl) GetConnection(cliIdx int) (cl *Client, err error) {
+	if cliIdx >= len(srh.clients) {
+		return cl, errors.New("Invalid Client Index. Not enough clients (index=" + strconv.Itoa(cliIdx) + "/clients=" + strconv.Itoa(len(srh.clients)) + ")")
+	}
+
 	conn, err := srh.listener.Accept()
 	if err != nil {
 		lib.PrintlnError("Error while waiting for connection", err)
+		return cl, err
 	}
 
 	cl = &srh.clients[cliIdx]
 
 	cl.connection = conn
 
-	return cl
+	return cl, nil
 }
 
 func (cl *Client) CloseConnection() {
@@ -103,34 +106,20 @@ func (cl *Client) CloseConnection() {
 	}
 }
 
-func (cl *Client) Read() (message string) {
-	var err error
-	// recebe solicitações do cliente
-	message, err = bufio.NewReader(cl.connection).ReadString('\n')
+func (cl *Client) Receive() (msg []byte, err error) {
+	msg = make([]byte, 10240)
+	n, err := cl.connection.Read(msg)
 	if err != nil {
-		lib.PrintlnError("Error while reading message from socket TCP. Details:", err)
+		return nil, err
 	}
 
-	return message
+	return msg[:n], nil
 }
 
-func (cl *Client) Write(message string) {
-	// envia resposta
-
-	// Vários tipos diferentes de se escrever utilizando Writer, todos funcionam
-	//_, err := fmt.Fprintf(conn, msgToServer+"\n")
-	//_, err := conn.Write([]byte( msgToServer + "\n"))
-	/*reader := bufio.NewWriter(conn)
-	_, err := reader.WriteString( msgToServer + "\n")
-	reader.Flush()*/
-	/*reader := bufio.NewWriter(conn)
-	_, err := io.WriteString(reader, msgToServer + "\n")
-	reader.Flush()*/
-	//_, err := io.WriteString(conn, msgToServer+"\n")
-
-	_, err := cl.connection.Write([]byte(message + "\n"))
+func (cl *Client) Send(msg []byte) (err error) {
+	_, err = cl.connection.Write(msg)
 	if err != nil {
-		lib.PrintlnError("Error while writing message to socket TCP. Details:", err)
-		os.Exit(1)
+		return err
 	}
+	return nil
 }

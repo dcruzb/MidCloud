@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var SHOW_MESSAGES = []DebugLevel{ERROR, INFO, MESSAGE}
+var SHOW_MESSAGES = []DebugLevel{ERROR, INFO, MESSAGE} //, DEBUG}
 
 type DebugLevel int
 
@@ -18,10 +18,11 @@ const (
 	ERROR   DebugLevel = 0
 	INFO    DebugLevel = 1
 	MESSAGE DebugLevel = 2
+	DEBUG   DebugLevel = 3
 )
 
 func (d DebugLevel) ToInt() int {
-	return [...]int{0, 1, 2}[d]
+	return [...]int{0, 1, 2, 3}[d]
 }
 
 func FunctionName() string {
@@ -47,6 +48,11 @@ func Println(messageLevel DebugLevel, message ...interface{}) {
 				logs = append(logs, file, "- INFO -")
 				logs = append(logs, message...)
 				log.Println(logs...)
+			case DEBUG:
+				var logs []interface{}
+				logs = append(logs, file, "- DEBUG -")
+				logs = append(logs, message...)
+				log.Println(logs...)
 			case MESSAGE:
 				fmt.Println(message...)
 			case ERROR:
@@ -61,6 +67,10 @@ func Println(messageLevel DebugLevel, message ...interface{}) {
 
 func PrintlnInfo(message ...interface{}) {
 	Println(INFO, message...)
+}
+
+func PrintlnDebug(message ...interface{}) {
+	Println(DEBUG, message...)
 }
 
 func PrintlnMessage(message ...interface{}) {

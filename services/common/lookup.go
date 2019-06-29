@@ -34,28 +34,29 @@ type Lookup struct {
 // Binds the name to the AOR.
 // If already exists a service with the same name it is updated
 func (l *Lookup) Bind(sn string, cp ClientProxy) (err error) {
-	lib.PrintlnInfo("Lookup", "Service bind =", sn)
+	//lib.PrintlnInfo("Lookup", "Service bind =", sn)
 	for i, nr := range l.services {
 		if nr.ServiceName == sn {
+			lib.PrintlnInfo("Lookup", "Service bind - changed. sn:", sn, "CP:", cp.Ip, cp.Port, cp.ObjectId)
 			l.services[i] = NamingRecord{sn, cp}
 			return nil
 		}
 	}
 
-	lib.PrintlnInfo("Lookup", "Service bind. sn:", sn, "CP:", cp.Ip, cp.Port, cp.ObjectId)
+	lib.PrintlnInfo("Lookup", "Service bind - new. sn:", sn, "CP:", cp.Ip, cp.Port, cp.ObjectId)
 	l.services = append(l.services, NamingRecord{sn, cp})
 	return nil
 }
 
 func (l Lookup) Lookup(serviceName string) (cp ClientProxy, err error) {
-	lib.PrintlnInfo("Lookup", "Service lookup =", serviceName)
+	//lib.PrintlnInfo("Lookup", "Service lookup =", serviceName)
 	for _, nr := range l.services {
 		if nr.ServiceName == serviceName {
-			lib.PrintlnInfo("Lookup", "Service found = ", serviceName, "(", nr.ClientProxy.ObjectId, ")")
+			lib.PrintlnInfo("Lookup", "Service lookup found = ", serviceName, "(", nr.ClientProxy.ObjectId, ")")
 			return nr.ClientProxy, nil
 		}
 	}
-	lib.PrintlnInfo("Lookup", "Service not found = ", serviceName)
+	lib.PrintlnInfo("Lookup", "Service lookup not found = ", serviceName)
 	return ClientProxy{}, nil
 }
 

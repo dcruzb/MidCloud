@@ -4,10 +4,12 @@ import (
 	"github.com/dcbCIn/MidCloud/infrastruture/server"
 	"github.com/dcbCIn/MidCloud/lib"
 	"reflect"
+	"sync"
 )
 
 type InvokerImpl struct {
 	remoteObjects map[int]interface{}
+	srh           *server.ServerRequestHandlerImpl
 }
 
 func (inv *InvokerImpl) Register(objectId int, remoteObject interface{}) {
@@ -15,56 +17,80 @@ func (inv *InvokerImpl) Register(objectId int, remoteObject interface{}) {
 		inv.remoteObjects = make(map[int]interface{})
 	}
 
-	inv.remoteObjects[objectId] = remoteObject //reflect.New(reflect.TypeOf(remoteObject)) //remoteObject
+	inv.remoteObjects[objectId] = remoteObject
 }
 
-func (inv *InvokerImpl) Invoke(port int) (err error) {
-	srh, err := server.NewServerRequestHandlerImpl(port, 5) // TODO alterar para pegar da configuração
+func (inv *InvokerImpl) Invoke(port int, initialConnections int) (err error) {
+	inv.srh, err = server.NewServerRequestHandlerImpl(port, initialConnections)
 	if err != nil {
 		return err
 	}
-	defer srh.StopServer()
-	lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - conexão aberta")
+	defer inv.srh.StopServer()
+	lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Started to listen on port", port, "with", initialConnections, "connections")
+
+	var wg = sync.WaitGroup{}
+
+	for i := 0; i < initialConnections; i++ {
+
+		wg.Add(1)
+		go func(idx int) {
+			inv.processConnection(idx)
+			wg.Done()
+		}(i)
+
+	}
+
+	wg.Wait()
+	err = inv.srh.CloseConnection()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (inv *InvokerImpl) processConnection(connectionIdx int) (err error) {
 
 	for {
-		err = srh.Start()
+		cli, err := inv.srh.GetConnection(connectionIdx)
 		if err != nil {
+			lib.PrintlnError(err)
 			return err
 		}
+		lib.PrintlnDebug("InvokerImpl", "Invoker.processConnection(", connectionIdx, ") - Connection established")
 
 		for {
-			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Aguardando mensagem")
-
-			msgToBeUnmarshalled, err := srh.Receive()
+			msgToBeUnmarshalled, err := cli.Receive()
 			if err != nil {
 				if err.Error() == "EOF" {
-					lib.PrintlnInfo("Connection has been closed!")
+					lib.PrintlnDebug("InvokerImpl", "Invoker.processConnection(", connectionIdx, ") - Connection has been closed!")
 					break
 				} else {
-					lib.PrintlnInfo("Connection has been gracefully closed!")
+					lib.PrintlnDebug("InvokerImpl", "Invoker.processConnection(", connectionIdx, ") - Connection has been gracefully closed!")
 					break
 				}
 			}
-			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Message received")
+			lib.PrintlnDebug("InvokerImpl", "Invoker.processConnection(", connectionIdx, ") - Message received")
 
 			msgReceived, err := Unmarshall(msgToBeUnmarshalled)
-
 			if err != nil {
 				return err
 			}
 
-			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Message unmarshalled")
+			//			lib.PrintlnInfo("InvokerImpl", "Invoker.processConnection(",connectionIdx,") - Message unmarshalled")
 
+			// Demultiplex
 			remoteObject := inv.remoteObjects[msgReceived.Body.RequestHeader.ObjectKey]
 
 			reflectedObject := reflect.ValueOf(remoteObject) //remoteObject.rcvr
 			function := reflectedObject.MethodByName(msgReceived.Body.RequestHeader.Operation)
 			functionType := function.Type()
 
+			// Dispatch
 			if functionType.NumIn() != len(msgReceived.Body.RequestBody.Parameters) {
 				msgReceived.Body.ReplyHeader = ReplyHeader{"", msgReceived.Body.RequestHeader.RequestId, 0}
 				msgReceived.Body.ReplyBody = nil
-				lib.PrintlnError("Quantidade de parâmetros inválida para objeto remoto (", msgReceived.Body.RequestHeader.ObjectKey, ")/ operação (", msgReceived.Body.RequestHeader.Operation, ")")
+				lib.PrintlnError("Invoker.processConnection(", connectionIdx, ") Quantidade de parâmetros inválida para objeto remoto (", msgReceived.Body.RequestHeader.ObjectKey, ")/ operação (", msgReceived.Body.RequestHeader.Operation, ")")
 			} else {
 				args := make([]reflect.Value, functionType.NumIn())
 				for i, parameter := range msgReceived.Body.RequestBody.Parameters {
@@ -79,7 +105,7 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 						inter := reflect.New(functionType.In(i))
 						_, err := lib.Decode(parameter.(map[string]interface{}) /*reflect.TypeOf(common.ClientProxy{}) ,*/, &inter) //mapstructure.Decode(parameter, &inter)
 						if err != nil {
-							lib.PrintlnError("Erro ao realizar decode. Erro:", err)
+							lib.PrintlnError("Invoker.processConnection(", connectionIdx, ") Erro ao realizar decode. Erro:", err)
 						}
 
 						//fmt.Println("Decode -", "structValue returned:", inter)
@@ -93,8 +119,8 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 						//fmt.Println("Decode -", "structValue returned:",retornoTipado)
 						//fmt.Println("Decode -", "structValue returned:", &retornoTipado)
 
-						arg = inter.Elem()   //inter.Elem()//reflect.ValueOf(inter) //inter.Addr().Elem()
-						lib.PrintlnInfo(arg) //par.(reflect.Value).Elem().Interface().(common.ClientProxy).Ip)
+						arg = inter.Elem() //inter.Elem()//reflect.ValueOf(inter) //inter.Addr().Elem()
+						//lib.PrintlnInfo(arg) //par.(reflect.Value).Elem().Interface().(common.ClientProxy).Ip)
 					default:
 						arg = reflect.ValueOf(parameter)
 					}
@@ -137,21 +163,14 @@ func (inv *InvokerImpl) Invoke(port int) (err error) {
 				return err
 			}
 
-			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Retorno marshalled")
+			//			lib.PrintlnInfo("InvokerImpl", "Invoker.processConnection(",connectionIdx,") - Retorno marshalled")
 
-			err = srh.Send(bytes)
+			err = cli.Send(bytes)
 			if err != nil {
 				return err
 			}
 
-			lib.PrintlnInfo("InvokerImpl", "Invoker.invoke - Mensagem enviada")
+			lib.PrintlnDebug("InvokerImpl", "Invoker.processConnection(", connectionIdx, ") - Message sent")
 		}
 	}
-
-	err = srh.CloseConnection()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
