@@ -8,9 +8,10 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
-var SHOW_MESSAGES = []DebugLevel{ERROR, INFO, MESSAGE} //, DEBUG}
+var SHOW_MESSAGES = []DebugLevel{ERROR, INFO, MESSAGE, DEBUG}
 
 type DebugLevel int
 
@@ -126,7 +127,24 @@ func Decode(mapValue map[string]interface{}, structValue interface{}) (decoded i
 
 		switch field.Kind() {
 		case reflect.Struct:
-			//Decode(v.(map[string]interface{}), &field)
+			if field.Type() == reflect.TypeOf(time.Time{}) {
+				dtString := v.(string)
+				if len(dtString) == 33 { // Pattern returned by unmarshall => Example: 2019-06-30T16:23:34.5836417-03:00
+					//dtString[28] = "Z"
+					dtString = dtString[:27] + "00" + dtString[27:] // Need to include 2 extra zeros to match the layout
+				}
+				// time.RFC3339Nano => Layout: 2006-01-02T15:04:05.999999999Z07:00
+				dateTime, err := time.Parse(time.RFC3339Nano, dtString)
+				if err != nil {
+					return decoded, err
+				}
+				field.Set(reflect.ValueOf(dateTime))
+			} else {
+				_, err = Decode(v.(map[string]interface{}), &field)
+				if err != nil {
+					return decoded, err
+				}
+			}
 		case reflect.String:
 			field.SetString(v.(string))
 		case reflect.Int, reflect.Int32, reflect.Int64:
