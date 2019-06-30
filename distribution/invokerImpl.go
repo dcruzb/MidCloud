@@ -154,6 +154,7 @@ func (inv *InvokerImpl) processConnection(connectionIdx int) (err error) {
 				}
 				//for i := 0; i <= functionType.NumOut(); i++ {
 				msgReceived.Body.ReplyBody = returned
+				msgReceived.Body.RequestBody.Parameters = []interface{}{}
 				//}
 			}
 
