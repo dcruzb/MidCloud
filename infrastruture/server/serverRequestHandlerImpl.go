@@ -107,7 +107,7 @@ func (cl *Client) CloseConnection() {
 }
 
 func (cl *Client) Receive() (msg []byte, err error) {
-	msg = make([]byte, 10240)
+	msg = make([]byte, 1024000) // TODO Verificar uma forma de obter informações da conexão sem precisar setar tamanho do array de bytes
 	n, err := cl.connection.Read(msg)
 	if err != nil {
 		return nil, err
