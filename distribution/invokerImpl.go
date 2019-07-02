@@ -82,7 +82,7 @@ func (inv *InvokerImpl) processConnection(connectionIdx int) (err error) {
 			// Demultiplex
 			remoteObject := inv.remoteObjects[msgReceived.Body.RequestHeader.ObjectKey]
 
-			reflectedObject := reflect.ValueOf(remoteObject) //remoteObject.rcvr
+			reflectedObject := reflect.ValueOf(remoteObject)
 			function := reflectedObject.MethodByName(msgReceived.Body.RequestHeader.Operation)
 			functionType := function.Type()
 
@@ -98,29 +98,13 @@ func (inv *InvokerImpl) processConnection(connectionIdx int) (err error) {
 					var arg reflect.Value
 					switch reflect.TypeOf(parameter).Kind() {
 					case reflect.Map:
-						//reflectedArg := reflect.New( functionType.In(i) )
-						//aux := &reflectedArg
-						//
-						//inter := aux.Elem() //.Interface() //reflectedArg.Elem().Interface() //.(reflectedArg.Type())
 						inter := reflect.New(functionType.In(i))
-						_, err := lib.Decode(parameter.(map[string]interface{}) /*reflect.TypeOf(common.ClientProxy{}) ,*/, &inter) //mapstructure.Decode(parameter, &inter)
+						_, err := lib.Decode(parameter.(map[string]interface{}), &inter)
 						if err != nil {
 							lib.PrintlnError("Invoker.processConnection(", connectionIdx, ") Erro ao realizar decode. Erro:", err)
 						}
 
-						//fmt.Println("Decode -", "structValue returned:", inter)
-						//fmt.Println("Decode -", "structValue returned:", &inter)
-						//retorno := &inter
-						//fmt.Println("Decode -", "structValue returned:", retorno)
-						//fmt.Println("Decode -", "structValue returned:", reflect.ValueOf(retorno).Elem())
-						//fmt.Println("Decode -", "structValue returned:", reflect.ValueOf(retorno).Elem().Elem())
-						//var retornoTipado common.ClientProxy
-						//retornoTipado = reflect.ValueOf(retorno).Elem().Interface().(common.ClientProxy)
-						//fmt.Println("Decode -", "structValue returned:",retornoTipado)
-						//fmt.Println("Decode -", "structValue returned:", &retornoTipado)
-
-						arg = inter.Elem() //inter.Elem()//reflect.ValueOf(inter) //inter.Addr().Elem()
-						//lib.PrintlnInfo(arg) //par.(reflect.Value).Elem().Interface().(common.ClientProxy).Ip)
+						arg = inter.Elem()
 					default:
 						arg = reflect.ValueOf(parameter)
 					}
