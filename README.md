@@ -1,4 +1,4 @@
-# MidCloud [![Godoc](https://godoc.org/github.com/dcbCIn/MidCloud?status.svg)](https://godoc.org/github.com/dcbCIn/MidCloud) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dcbCIn/MidCloud/blob/master/LICENSE) [![Build Status](https://travis-ci.org/dcbCIn/MidCloud.png?branch=master)](https://travis-ci.org/dcbCIn/MidCloud)
+# MidCloud [![Godoc](https://godoc.org/github.com/dcbCIn/MidCloud?status.svg)](https://godoc.org/github.com/dcbCIn/MidCloud) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dcbCIn/MidCloud/blob/master/LICENSE) [![Build Status](https://travis-ci.org/dcbCIn/MidCloud.png?branch=master)](https://travis-ci.org/dcbCIn/MidCloud) [![Go Report Card](https://goreportcard.com/badge/github.com/dcbCIn/MidCloud)](https://goreportcard.com/report/github.com/dcbCIn/MidCloud)
 Adaptive middleware for cloud services, with transparent choice of best cloud.
 The basic conceptions are that the message will be sent to the server that has the lower cost to do the task and is available.
 
