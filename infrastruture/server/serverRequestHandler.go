@@ -1,5 +1,6 @@
 package server
 
+// ServerRequestHandler Interface for the ServerRequestHandles implementations
 type ServerRequestHandler interface {
 	Start() (err error)
 	Stop() (err error)

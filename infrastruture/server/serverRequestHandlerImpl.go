@@ -7,10 +7,13 @@ import (
 	"strconv"
 )
 
+// Client identifies the Client connected to the ServerRequestHandler
 type Client struct {
 	connection net.Conn
 }
 
+// ServerRequestHandlerImpl implementation of ServerRequestHandler.
+// Start a server and wait for connections
 type ServerRequestHandlerImpl struct {
 	Port       int
 	listener   net.Listener
@@ -18,6 +21,7 @@ type ServerRequestHandlerImpl struct {
 	clients    []Client
 }
 
+// NewServerRequestHandlerImpl creates a ServerRequestHandlerImpl
 func NewServerRequestHandlerImpl(port int, initialConnections int) (srh *ServerRequestHandlerImpl, err error) {
 	srh = &ServerRequestHandlerImpl{Port: port}
 	srh.clients = make([]Client, initialConnections, initialConnections)
@@ -29,10 +33,11 @@ func NewServerRequestHandlerImpl(port int, initialConnections int) (srh *ServerR
 	return srh, nil
 }
 
-func (s *ServerRequestHandlerImpl) Start() (err error) {
+// Start wait for new connection (one connection based implementation)
+func (srh *ServerRequestHandlerImpl) Start() (err error) {
 	lib.PrintlnInfo("ServerRequestHandler", "Aceitando conexões...")
 
-	s.connection, err = s.listener.Accept()
+	srh.connection, err = srh.listener.Accept()
 	if err != nil {
 		lib.PrintlnInfo("ServerRequestHandler", "Erro ao abrir conexão")
 		return err
@@ -42,9 +47,10 @@ func (s *ServerRequestHandlerImpl) Start() (err error) {
 	return nil
 }
 
-func (s *ServerRequestHandlerImpl) CloseConnection() (err error) {
+// CloseConnection closes the server connection (one connection based implementation)
+func (srh *ServerRequestHandlerImpl) CloseConnection() (err error) {
 	lib.PrintlnInfo("ServerRequestHandler", "ServerRequestHandler.Stop - Closing connection")
-	err = s.connection.Close()
+	err = srh.connection.Close()
 	if err != nil {
 		return err
 	}
@@ -52,8 +58,9 @@ func (s *ServerRequestHandlerImpl) CloseConnection() (err error) {
 	return nil
 }
 
-func (s *ServerRequestHandlerImpl) StopServer() (err error) {
-	err = s.listener.Close()
+// StopServer close the server listener (one connection based implementation)
+func (srh *ServerRequestHandlerImpl) StopServer() (err error) {
+	err = srh.listener.Close()
 	if err != nil {
 		return err
 	}
@@ -61,9 +68,10 @@ func (s *ServerRequestHandlerImpl) StopServer() (err error) {
 	return nil
 }
 
-func (s *ServerRequestHandlerImpl) Receive() (msg []byte, err error) {
+// Receive receives a message in sent direct to the server (one connection based implementation)
+func (srh *ServerRequestHandlerImpl) Receive() (msg []byte, err error) {
 	msg = make([]byte, 10240)
-	n, err := s.connection.Read(msg)
+	n, err := srh.connection.Read(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +79,9 @@ func (s *ServerRequestHandlerImpl) Receive() (msg []byte, err error) {
 	return msg[:n], nil
 }
 
-func (s *ServerRequestHandlerImpl) Send(msg []byte) (err error) {
-	_, err = s.connection.Write(msg)
+// Send sends a message from the server (one connection based implementation)
+func (srh *ServerRequestHandlerImpl) Send(msg []byte) (err error) {
+	_, err = srh.connection.Write(msg)
 	if err != nil {
 		return err
 	}
@@ -81,6 +90,7 @@ func (s *ServerRequestHandlerImpl) Send(msg []byte) (err error) {
 
 //------------------------------
 
+// GetConnection wait for new connection in the client cliIdx (multiple connections based implementation)
 func (srh *ServerRequestHandlerImpl) GetConnection(cliIdx int) (cl *Client, err error) {
 	if cliIdx >= len(srh.clients) {
 		return cl, errors.New("Invalid Client Index. Not enough clients (index=" + strconv.Itoa(cliIdx) + "/clients=" + strconv.Itoa(len(srh.clients)) + ")")
@@ -99,6 +109,7 @@ func (srh *ServerRequestHandlerImpl) GetConnection(cliIdx int) (cl *Client, err 
 	return cl, nil
 }
 
+// CloseConnection closes the client connection (multiple connections based implementation)
 func (cl *Client) CloseConnection() {
 	err := cl.connection.Close()
 	if err != nil {
@@ -106,6 +117,7 @@ func (cl *Client) CloseConnection() {
 	}
 }
 
+// Receive receives a message from a client (multiple connections based implementation)
 func (cl *Client) Receive() (msg []byte, err error) {
 	msg = make([]byte, 1024000) // TODO Verificar uma forma de obter informações da conexão sem precisar setar tamanho do array de bytes
 	n, err := cl.connection.Read(msg)
@@ -116,6 +128,7 @@ func (cl *Client) Receive() (msg []byte, err error) {
 	return msg[:n], nil
 }
 
+// Send send a message to a client (multiple connections based implementation)
 func (cl *Client) Send(msg []byte) (err error) {
 	_, err = cl.connection.Write(msg)
 	if err != nil {
