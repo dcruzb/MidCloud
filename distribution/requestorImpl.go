@@ -44,7 +44,7 @@ func (r *RequestorImpl) Invoke(inv Invocation) (t Termination, err error) {
 	}
 
 	if msgReturned.Body.ReplyHeader.ReplyStatus != 1 {
-		// Todo identify errors by diferent ReplyStatus codes
+		// Todo identify errors by different ReplyStatus codes
 		return Termination{}, errors.New("Server error while requesting remote operation. ")
 	}
 

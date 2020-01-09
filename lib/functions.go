@@ -166,7 +166,7 @@ func Decode(mapValue map[string]interface{}, structValue interface{}) (decoded i
 	//fmt.Println("Decode -", "structValue returned:", &(structValue.(reflect.Value)))
 	return structValue, nil
 
-	// Todo adicionar verificação abaixo (se um parametro é passível de conversão para outro tipo)
+	// Todo add check below (if one parameter is convertible to another type)
 	//argType := argValue.Type()
 	//if argType.ConvertibleTo(inType) {
 	//	in[i] = argValue.Convert(inType)
