@@ -69,7 +69,7 @@ func TestUnmarshall(t *testing.T) {
 
 	message :=
 		func(marshaledMessage []byte) Message {
-		var message Message
+			var message Message
 			_ = json.Unmarshal(marshaledMessage, &message)
 			return message
 		}
@@ -87,7 +87,7 @@ func TestUnmarshall(t *testing.T) {
 		},
 
 		{"UnMarshaller Test 2",
-			args{[]byte {'2','3'}},
+			args{[]byte{'2', '3'}},
 			message(marshaledMessage2),
 			true,
 		},
